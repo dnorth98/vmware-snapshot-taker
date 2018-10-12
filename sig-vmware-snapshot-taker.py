@@ -49,13 +49,25 @@ def print_vm_info(virtual_machine):
     print("")
 
 def create_snapshot(si, uuid):
+    snapshot_created = False
+
     instance_search = True  # we're using instance UUIDs
     vm = si.content.searchIndex.FindByUuid(None, uuid, True, instance_search)
 
+    desc = "Automated Snapshot"
+    snapshot_name = "Backup"
+
     if vm is None:
-        return False
+        snapshot_created = False
     else:
-        return True
+        task = vm.CreateSnapshot_Task(name=snapshot_name,
+                                      description=desc,
+                                      memory=True,
+                                      quiesce=False)
+        if task:
+            snapshot_created = True
+
+    return snapshot_created
 
 def main():
     """
@@ -105,11 +117,13 @@ def main():
             if info.config.name in vm_names_to_snap:
                 uuid = info.config.instanceUuid
 
-                if create_snapshot(service_instance, uuid):
-                    print "Snapshot triggered for " + info.config.name
+                if uuid is not None:
+                    if create_snapshot(service_instance, uuid):
+                        print "Snapshot triggered for " + info.config.name
+                    else:
+                        print "Error trigging snapshot for " + info.config.name
                 else:
-                    print "Error trigging snapshot for " + info.config.name
-                #print_vm_info(child)
+                    print "Error obtaining UUID for " + info.config.name + " - Unable to trigger snapshot"
 
     except vmodl.MethodFault as error:
         print("Caught vmodl fault : " + error.msg)
