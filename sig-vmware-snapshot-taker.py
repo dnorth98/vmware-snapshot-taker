@@ -11,6 +11,7 @@ from pyVmomi import vim
 import tools.cli as cli
 
 import json
+import datetime
 
 def get_vm_info(virtual_machine):
     summary = virtual_machine.summary
@@ -54,8 +55,10 @@ def create_snapshot(si, uuid):
     instance_search = True  # we're using instance UUIDs
     vm = si.content.searchIndex.FindByUuid(None, uuid, True, instance_search)
 
-    desc = "Automated Snapshot"
-    snapshot_name = "Backup"
+    date_str = datetime.datetime.today().strftime('%Y-%m-%d')
+
+    desc = "Automated Snapshot taken on " + date_str
+    snapshot_name = "Backup-" + date_str
 
     if vm is None:
         snapshot_created = False
